@@ -15,15 +15,13 @@ cask "brogue-ce" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :big_sur"
+  depends_on :macos
 
   app "BrogueCE-macos/Brogue CE.app"
 
-  postflight do
-    system "/usr/bin/xattr", "-drs", "com.apple.quarantine", "#{appdir}/Brogue CE.app"
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-drs", "com.apple.quarantine", "{{appdir}}/Brogue CE.app"]
   end
 
-  zap trash: [
-    "~/Library/Application Support/Brogue/Brogue CE"
-  ]
+  zap trash: "~/Library/Application Support/Brogue/Brogue CE"
 end

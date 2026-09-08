@@ -1,0 +1,45 @@
+name: Bump casks on schedule or request
+
+on:
+  workflow_dispatch:
+    inputs:
+      casks:
+        description: "Custom space/newline-separated list of casks to livecheck and bump"
+        required: false
+  schedule:
+    - cron: "53 5 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autobump:
+    runs-on: macos-latest
+    env:
+      HOMEBREW_DEVELOPER: 1
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: false
+          cask: true
+
+      - name: Configure Git user
+        uses: Homebrew/actions/git-user-config@main
+        with:
+          username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'github-actions[bot]' }}
+
+      - name: Bump casks
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CASKS: ${{ inputs.casks }}
+        continue-on-error: true
+        run: |
+          BREW_BUMP=(brew bump --no-fork --open-pr --casks)
+          if [[ -n "${CASKS-}" ]]; then
+            xargs "${BREW_BUMP[@]}" <<<"${CASKS}"
+          else
+            "${BREW_BUMP[@]}" --auto --tap="${{ github.repository }}"
+          fi

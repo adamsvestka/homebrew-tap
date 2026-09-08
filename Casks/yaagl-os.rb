@@ -13,12 +13,12 @@ cask "yaagl-os" do
   end
 
   auto_updates true
-  depends_on macos: ">= :catalina"
+  depends_on macos: :sequoia
 
   app "Yaagl OS.app"
 
-  postflight do
-    system "/usr/bin/xattr", "-drs", "com.apple.quarantine", "#{appdir}/Yaagl OS.app"
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-drs", "com.apple.quarantine", "{{appdir}}/Yaagl OS.app"]
   end
 
   zap trash: [
